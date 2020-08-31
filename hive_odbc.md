@@ -1,6 +1,9 @@
-ODBC config example ~/.odbc.ini
+An example of Hive ODBC config (~/.odbc.ini)
+
 dsn1 - connection through Zookeeper
+
 direct - direct connection to HiveServer
+
 HDP driver link - https://www.cloudera.com/downloads/hdp.html
 
 ```
