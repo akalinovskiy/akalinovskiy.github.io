@@ -2,6 +2,22 @@ theme: jekyll-theme-cayman
 
 title: Artem Kalinovskiy
 
+defaults:
+  -
+    scope:
+      type: posts
+      path: _posts
+    values:
+      is_post: true
+      layout: post
+  -
+    scope:
+      type: pages
+      path: _pages
+    values:
+      is_post: false
+      layout: default
+
 plugins:
   - jekyll-sitemap
   - jekyll-seo-tag
