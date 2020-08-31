@@ -1,4 +1,6 @@
-# An example of Hive ODBC config (~/.odbc.ini)
+# An example of Hive ODBC config (BI DSN etc)
+
+typical config location - `~/.odbc.ini`
 
 dsn1 - connection through Zookeeper
 
