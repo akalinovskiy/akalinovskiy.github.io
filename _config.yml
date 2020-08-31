@@ -1,1 +1,7 @@
 theme: jekyll-theme-cayman
+
+title: Artem Kalinovskiy
+
+plugins:
+  - jekyll-sitemap
+  - jekyll-seo-tag
