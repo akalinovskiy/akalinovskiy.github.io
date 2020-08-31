@@ -1,0 +1,48 @@
+ODBC config example ~/.odbc.ini
+dsn1 - connection through Zookeeper
+direct - direct connection to HiveServer
+HDP driver link - https://www.cloudera.com/downloads/hdp.html
+
+```
+[ODBC]
+# Specify any global ODBC configuration here such as ODBC tracing.
+ 
+[ODBC Data Sources]
+dsn1=Hive
+ 
+[dsn1]
+Description=Hive DSN
+Driver=/usr/lib/hive/lib/native/Linux-amd64-64/libhortonworkshiveodbc64.so
+Host=zk-host1:2181,zk-host2:2181,zk-host3:2181
+Schema=<your schema>
+ServiceDiscoveryMode=1
+ZKNamespace=hiveserver2
+HiveServerType=2
+AuthMech=2
+SSL=0
+ThriftTransport=1
+UseNativeQuery=0
+ 
+[direct]
+Description=Hive DSN
+Driver=/usr/lib/hive/lib/native/Linux-amd64-64/libhortonworkshiveodbc64.so
+Host=<hiveserver host>
+Port=10000
+Schema=<your schema>
+HiveServerType=2
+AuthMech=2
+ThriftTransport=2
+UseNativeQuery=0
+ 
+[ODBC Drivers]
+Hortonworks Hive ODBC Driver 32-bit=Installed
+Hortonworks Hive ODBC Driver 64-bit=Installed
+ 
+[Hortonworks Hive ODBC Driver 32-bit]
+Description=Hortonworks Hive ODBC Driver (32-bit)
+Driver=/usr/lib/hive/lib/native/Linux-i386-32/libhortonworkshiveodbc32.so
+ 
+[Hortonworks Hive ODBC Driver 64-bit]
+Description=Hortonworks Hive ODBC Driver (64-bit)
+Driver=/usr/lib/hive/lib/native/Linux-amd64-64/libhortonworkshiveodbc64.so
+```
