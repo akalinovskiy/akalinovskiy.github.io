@@ -1,3 +1,8 @@
+---
+layout: page
+title: Hive 2 -> Hive 3 migration guide
+---
+
 # Миграция Hive Metastore (Hive 2 to Hive 3)
 Переносим Hive Metastore 2 на новый кластер с Hive 3.
 Сначала необходимо перенести данные в /apps/hive/warehouse на новый кластер, например так:
