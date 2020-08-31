@@ -1,6 +1,7 @@
 ---
 title: Hive 2 -> Hive 3 migration guide
 tags: [hive, metastore, hdp, hadoop, migration]
+excerpt: "Небольшой гайд по миграции Hive 2 на новый кластер с Hive 3"
 comments: false
 category: blog
 ---

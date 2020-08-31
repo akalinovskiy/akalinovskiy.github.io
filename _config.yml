@@ -10,6 +10,7 @@ defaults:
     values:
       is_post: true
       layout: default
+      permalink: /blog/:title/
   -
     scope:
       type: pages
