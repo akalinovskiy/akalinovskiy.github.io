@@ -9,7 +9,7 @@ defaults:
       path: _posts
     values:
       is_post: true
-      layout: post
+      layout: default
   -
     scope:
       type: pages

@@ -1,5 +1,4 @@
 ---
-layout: post
 title: Hive 2 -> Hive 3 migration guide
 tags: [hive, metastore, hdp, hadoop, migration]
 comments: false
