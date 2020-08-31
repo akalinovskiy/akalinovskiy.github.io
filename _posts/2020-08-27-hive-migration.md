@@ -9,64 +9,64 @@ category: blog
 # Миграция Hive Metastore (Hive 2 to Hive 3)
 Переносим Hive Metastore 2 на новый кластер с Hive 3.
 Сначала необходимо перенести данные в /apps/hive/warehouse на новый кластер, например так:
-```
+{% highlight console %}
 hadoop distcp -m 200 hdfs://old-cluster-nn:8020/apps/hive/warehouse hdfs://new-cluster-nn:8020/apps/hive/warehouse
-```
+{% endhighlight %}
 Тк на старом кластере для metastore использовался MySQL на новом кластере необходимо установить MySQL (Из коробки установили Postgres).
 Можно попробовать использовать **mysqldump --compatible=postgresql** https://en.wikibooks.org/wiki/Converting_MySQL_to_PostgreSQL но сходу не получилось.
 
 ### Установка MySQL
 Есть вариант не устанавливать MySQL а поставить просто mariadb
 Скачиваем rpm (https://downloads.mysql.com/archives/community/ выбираем нужные Product Version, Operating System, OS Version)
-```
+{% highlight console %}
 # Add '-x socks5h://socks5_proxy_server:22020' if needed
 [root@prd ~]# curl -L -O -k https://downloads.mysql.com/archives/get/file/mysql-5.7.26-1.el7.x86_64.rpm-bundle.tar
-```
+{% endhighlight %}
 Разжимаем tar
-```
+{% highlight console %}
 [root@prd ~]# tar xvf mysql-5.7.26-1.el7.x86_64.rpm-bundle.tar -C mysql_rpms
-```
+{% endhighlight %}
 Устанавливаем скачанные rpm
-```
+{% highlight console %}
 [root@prd mysql_rpms]# yum localinstall *.rpm
-```
+{% endhighlight %}
 Удаляем старые mariadb-libs
-```
+{% highlight console %}
 rpm --nodeps -e mariadb-libs
-```
+{% endhighlight %}
 Запускаем сервис
-```
+{% highlight console %}
 [root@prd]# service mysqld start
-```
+{% endhighlight %}
 Смотрим пароль
-```
+{% highlight console %}
 [root@prd ~]# grep 'temporary password' /var/log/mysqld.log
-```
+{% endhighlight %}
 Меняем рутовый пароль и настройки 
-```
+{% highlight console %}
 [root@prd ~]# mysql_secure_installation
-```
+{% endhighlight %}
 Создаём пользователя hive
-```
+{% highlight sql %}
 mysql -p
  
 mysql> CREATE USER 'hive'@'%' IDENTIFIED BY 'user_password';
 mysql> CREATE DATABASE hive;
 mysql> GRANT ALL PRIVILEGES ON hive.* TO 'hive'@'%';
-```
+{% endhighlight %}
 Делаем dump базы данных которую собираемся переносить и копируем на наш сервер
-```
+{% highlight console %}
 [admin@old-prd ~]$ sudo mysqldump hive > mysql_hive_database_dump_20190913.sql
 [admin@old-prd ~]$ scp mysql_hive_database_dump_20190913.sql root@prd:~/
-```
+{% endhighlight %}
 Необходимо поменять имя Namenode в дампе, например через vi (Esc :%s/hdfscluster/mlk-prd/g) меняем все old-cluster на new-cluster
 Имя кластера можно посмотреть в Ambari: HDFS → HDFS config в поиске ищем defaultFS
 ![Ambari](https://github.com/akalinovskiy/tips/blob/master/imgs/hm1.png?raw=true)
 
 Накатываем изменённый дамп
-```
+{% highlight console %}
 [root@prd ~]# mysql -u hive -p hive < mysql_hive_database_dump_20190913.sql
-```
+{% endhighlight %}
 Находим ссылку на JDBC driver https://dev.mysql.com/downloads/connector/j/ для 5.7
 
 <img src="https://github.com/akalinovskiy/tips/blob/master/imgs/hm2.png?raw=true" width="300"/>
@@ -75,18 +75,18 @@ mysql> GRANT ALL PRIVILEGES ON hive.* TO 'hive'@'%';
 
 
 Переходим на ноду с Амбари и ставим JDBC драйвер
-```
+{% highlight console %}
 # add -x socks5h://socks5-proxy:22020 if needed
 [root@new-ambari ~]# curl -L -O -k https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-5.1.48.tar.gz
 [root@new-ambari ~]# tar xzvf mysql-connector-java-5.1.48.tar.gz
 [root@new-ambari ~]# ambari-server setup --jdbc-db=mysql --jdbc-driver=mysql-connector-java-5.1.48/mysql-connector-java-5.1.48.jar
-```
+{% endhighlight %}
 Возвращаемся на ноду с Metastore
-```
+{% highlight console %}
 [root@new-metastore ~]# cp mysql-connector-java-5.1.48.jar /usr/hdp/current/hive-server2/lib/
-```
+{% endhighlight %}
 Запускаем валидацию схемы
-```
+{% highlight console %}
 [root@new-metastore ~]# /usr/hdp/current/hive-server2/bin/schematool -validate -dbType mysql -driver com.mysql.jdbc.Driver -url jdbc:mysql://new-metastore/hive -userName hive -passWord "<password>" -verbose
  
 SLF4J: Class path contains multiple SLF4J bindings.
@@ -124,15 +124,15 @@ org.apache.hadoop.hive.metastore.HiveMetaException: Unknown version specified fo
         at org.apache.hadoop.util.RunJar.run(RunJar.java:318)
         at org.apache.hadoop.util.RunJar.main(RunJar.java:232)
 *** schemaTool failed ***
-```
+{% endhighlight %}
 Видим различия версий схемы
 ```
 Metastore schema version is not compatible. Hive Version: 3.1.0, Database Schema Version: 2.1.2000
 ```
 Запускам upgrade
-```
+{% highlight console %}
 [root@new-metastore ~]# /usr/hdp/current/hive-server2/bin/schematool -upgradeSchemaFrom 2.1.2000 -dbType mysql -driver com.mysql.jdbc.Driver -url jdbc:mysql://new-metastore/hive -userName hive -passWord "<password>" -verbose
-```
+{% endhighlight %}
 
 Идем в Ambari -> Services/Hive останавливаем сервисы Actions/Stop 
 <br/>
@@ -157,7 +157,7 @@ Metastore schema version is not compatible. Hive Version: 3.1.0, Database Schema
 
 ### Обновление таблиц
 Обновляем все таблицы через Zeppelin, следующим скриптом:
-```
+{% highlight scala %}
 import org.apache.spark.sql._
 import org.apache.spark.sql.expressions._
 import org.apache.spark.sql.functions._
@@ -201,4 +201,4 @@ databases foreach { db =>
     spark.sql(s"use $db")
     refresh(spark.sql("show tables"))
 }
-```
+{% endhighlight %}
